@@ -1,0 +1,8 @@
+flask
+pillow
+folium
+exifread
+asyncio
+flask-socketio
+python-socketio
+eventlet
