@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Image Mosaic Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        .image-overlay {
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        .image-overlay:hover {
+            opacity: 1;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([51.49793094444445, 6.5492261944444445], 20);
+        var imageOverlays = [];
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Function to add image overlay
+        function addImageToMap(imageData) {
+            var img = new Image();
+            img.src = imageData.image;
+            
+            var overlay = L.imageOverlay(img, imageData.bounds, {
+                className: 'image-overlay',
+                interactive: true
+            }).addTo(map);
+            
+            // Add click event to bring to front
+            overlay.on('click', function() {
+                overlay.bringToFront();
+            });
+            
+            imageOverlays.push(overlay);
+            
+            // Auto-fit map to show all images
+            if (imageOverlays.length > 0) {
+                var group = new L.featureGroup(imageOverlays);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        // Connect to Socket.IO
+        var socket = io();
+
+        // Listen for new images
+        socket.on('new_image', function(imageData) {
+            addImageToMap(imageData);
+        });
+
+        // Fetch existing images on page load
+        fetch('/images')
+            .then(response => response.json())
+            .then(images => {
+                images.forEach(addImageToMap);
+            });
+    </script>
+</body>
+</html>
