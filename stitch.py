@@ -1,3 +1,5 @@
+# This file contains all the stitching code I have tested so far, apart from the existing code that I have tested. 
+
 '''
 import cv2
 import numpy as np
