@@ -1,3 +1,4 @@
+# Optimized version of the app.py file, which uses ThreadPoolExecutor to send multiple images simultaneously.
 import os
 import socket
 import struct
